@@ -9,18 +9,78 @@ import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Download, Eye, FileText, Search, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 const Samples = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDataset, setSelectedDataset] = useState<DatasetInfo | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+  const [previewDataset, setPreviewDataset] = useState<DatasetInfo | null>(null);
+  const { toast } = useToast();
   
+  // Pagination constants
+  const itemsPerPage = 5;
+  
+  // Filter datasets based on search query
   const filteredDatasets = datasets.filter(
     dataset => dataset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                dataset.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Paginate the filtered datasets
+  const paginatedDatasets = filteredDatasets.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  
+  const totalPages = Math.ceil(filteredDatasets.length / itemsPerPage);
 
   const handleViewDetails = (dataset: DatasetInfo) => {
     setSelectedDataset(dataset);
+  };
+
+  const handleFilePreview = (dataset: DatasetInfo) => {
+    setPreviewDataset(dataset);
+    setFilePreviewOpen(true);
+  };
+
+  const handleImport = () => {
+    setImportDialogOpen(true);
+  };
+
+  const handleExport = (dataset?: DatasetInfo) => {
+    const datasetName = dataset ? dataset.name : "all-datasets";
+    toast({
+      title: "Export Started",
+      description: `Exporting ${datasetName} as CSV...`,
+    });
+    
+    // Simulate export delay
+    setTimeout(() => {
+      toast({
+        title: "Export Complete",
+        description: `${datasetName}.csv has been downloaded.`,
+      });
+    }, 1500);
+  };
+
+  const handleUseDataset = (dataset: DatasetInfo) => {
+    toast({
+      title: "Dataset Selected",
+      description: `${dataset.name} has been selected for analysis.`,
+    });
+    setSelectedDataset(null);
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   return (
@@ -28,7 +88,14 @@ const Samples = () => {
       <DashboardHeader 
         title="Sample Data"
         subtitle="Browse and manage sample datasets"
-        onRefresh={() => setSearchQuery("")}
+        onRefresh={() => {
+          setSearchQuery("");
+          setCurrentPage(1);
+          toast({
+            title: "Refreshed",
+            description: "Sample datasets have been refreshed",
+          });
+        }}
       />
       
       <div className="grid gap-6">
@@ -42,15 +109,22 @@ const Samples = () => {
                   placeholder="Search datasets..."
                   className="pl-10"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1); // Reset to first page on search
+                  }}
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleImport}>
                   <Upload size={16} className="mr-2" />
                   Import
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleExport()}
+                >
                   <Download size={16} className="mr-2" />
                   Export
                 </Button>
@@ -78,8 +152,8 @@ const Samples = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDatasets.length > 0 ? (
-                    filteredDatasets.map((dataset) => (
+                  {paginatedDatasets.length > 0 ? (
+                    paginatedDatasets.map((dataset) => (
                       <TableRow key={dataset.id}>
                         <TableCell className="font-medium">{dataset.name}</TableCell>
                         <TableCell>{dataset.description}</TableCell>
@@ -91,10 +165,16 @@ const Samples = () => {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleViewDetails(dataset)}
+                              title="View Details"
                             >
                               <Eye size={16} />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleFilePreview(dataset)}
+                              title="Preview Data"
+                            >
                               <FileText size={16} />
                             </Button>
                           </div>
@@ -114,18 +194,31 @@ const Samples = () => {
           </CardContent>
           <CardFooter className="flex justify-between">
             <div className="text-sm text-muted-foreground">
-              Showing {filteredDatasets.length} of {datasets.length} datasets
+              Showing {paginatedDatasets.length} of {filteredDatasets.length} datasets
             </div>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious href="#" />
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
+                {Array.from({ length: Math.min(totalPages, 3) }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      onClick={() => handlePageChange(i + 1)}
+                      isActive={currentPage === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
                 <PaginationItem>
-                  <PaginationLink href="#" isActive>1</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext href="#" />
+                  <PaginationNext 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
@@ -144,6 +237,11 @@ const Samples = () => {
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Description</h4>
                   <p className="text-sm text-muted-foreground">{selectedDataset.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Badge variant="secondary">Fashion</Badge>
+                    <Badge variant="secondary">Reviews</Badge>
+                    <Badge variant="secondary">{selectedDataset.productCount} Products</Badge>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -160,8 +258,17 @@ const Samples = () => {
                 <h4 className="text-sm font-medium mb-4">Sample Products & Reviews</h4>
                 <div className="rounded-md bg-muted p-6 text-center">
                   <p className="text-muted-foreground">
-                    Preview functionality will be available in the next update.
+                    Click the Preview button to see sample data from this dataset.
                   </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => handleFilePreview(selectedDataset)}
+                  >
+                    <FileText size={16} className="mr-2" />
+                    Preview Data
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -169,12 +276,154 @@ const Samples = () => {
               <Button variant="outline" onClick={() => setSelectedDataset(null)}>
                 Close
               </Button>
-              <Button>
+              <Button 
+                onClick={() => handleUseDataset(selectedDataset)}
+              >
                 Use Dataset
               </Button>
             </CardFooter>
           </Card>
         )}
+
+        {/* Import Dialog */}
+        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Import Dataset</DialogTitle>
+              <DialogDescription>
+                Upload a CSV or Excel file containing your dataset.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center cursor-pointer hover:border-gray-400 transition-colors">
+                <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                <p className="text-sm text-center text-gray-500 mb-1">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-center text-gray-400">
+                  CSV, Excel or JSON (max 10MB)
+                </p>
+                <Input 
+                  type="file" 
+                  className="hidden" 
+                  accept=".csv,.xlsx,.json"
+                />
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-between">
+              <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  setImportDialogOpen(false);
+                  toast({
+                    title: "Import Successful",
+                    description: "Your dataset has been uploaded successfully.",
+                  });
+                }}
+                disabled
+              >
+                Upload & Import
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* File Preview Dialog */}
+        <Dialog open={filePreviewOpen} onOpenChange={setFilePreviewOpen}>
+          <DialogContent className="sm:max-w-4xl h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>{previewDataset?.name} - Data Preview</DialogTitle>
+              <DialogDescription>
+                A preview of the raw data in this dataset.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Tabs defaultValue="products" className="flex-grow overflow-hidden flex flex-col">
+              <TabsList className="mb-2">
+                <TabsTrigger value="products">Products</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="products" className="flex-grow overflow-auto border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Rating</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(12)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>PRD-{(10000 + i).toString().substring(1)}</TableCell>
+                        <TableCell>{['Summer Dress', 'Casual Jeans', 'Evening Gown', 'Leather Jacket', 'Cotton Blouse'][i % 5]} {i}</TableCell>
+                        <TableCell>{['Dresses', 'Pants', 'Formal', 'Outerwear', 'Tops'][i % 5]}</TableCell>
+                        <TableCell>${Math.floor(20 + Math.random() * 180)}</TableCell>
+                        <TableCell>{(3 + Math.random() * 2).toFixed(1)} ★</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+              
+              <TabsContent value="reviews" className="flex-grow overflow-auto border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Comment</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(12)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>REV-{(10000 + i).toString().substring(1)}</TableCell>
+                        <TableCell>{['Summer Dress', 'Casual Jeans', 'Evening Gown', 'Leather Jacket', 'Cotton Blouse'][i % 5]} {i % 5}</TableCell>
+                        <TableCell>{1 + Math.floor(Math.random() * 5)} ★</TableCell>
+                        <TableCell className="max-w-[300px] truncate">
+                          {[
+                            "Love this product! The quality is amazing.",
+                            "Good fit but the color was not what I expected.",
+                            "Comfortable but ran a bit small.",
+                            "Perfect for the occasion, highly recommend.",
+                            "Disappointed with the material quality."
+                          ][i % 5]}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(2023, (i % 12), 1 + (i % 28)).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
+            
+            <DialogFooter className="sm:justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => setFilePreviewOpen(false)}
+              >
+                Close
+              </Button>
+              <Button onClick={() => {
+                handleExport(previewDataset!);
+                setFilePreviewOpen(false);
+              }}>
+                <Download size={16} className="mr-2" />
+                Export Data
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
