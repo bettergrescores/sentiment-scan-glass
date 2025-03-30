@@ -7,9 +7,10 @@ import { Product } from "@/data/mockData";
 interface TopProductProps {
   products: Array<Product & { score: number; reviewCount: number }>;
   type: "positive" | "negative";
+  onProductSelect?: (product: Product) => void;
 }
 
-const TopProducts = ({ products, type }: TopProductProps) => {
+const TopProducts = ({ products, type, onProductSelect }: TopProductProps) => {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
@@ -28,7 +29,11 @@ const TopProducts = ({ products, type }: TopProductProps) => {
           </TableHeader>
           <TableBody>
             {products.map((product) => (
-              <TableRow key={product.id}>
+              <TableRow 
+                key={product.id} 
+                className={onProductSelect ? "cursor-pointer hover:bg-muted" : ""}
+                onClick={() => onProductSelect && onProductSelect(product)}
+              >
                 <TableCell className="font-medium">
                   <div>{product.name}</div>
                   <div className="text-xs text-gray-500">{product.category} • ${product.price}</div>
