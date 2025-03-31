@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, User, ArrowRight, Loader2, Github } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignUp = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signup, googleLogin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -38,29 +40,43 @@ const SignUp = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signup(formData.name, formData.email, formData.password);
       toast({
         title: "Account created",
         description: "Welcome to Fashion Feedback Dashboard!",
       });
-      setIsLoading(false);
       navigate("/");
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error creating account",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     
-    // Simulate Google Auth
-    setTimeout(() => {
+    try {
+      await googleLogin();
       toast({
         title: "Signed in with Google",
         description: "Welcome to Fashion Feedback Dashboard!",
       });
-      setIsLoading(false);
       navigate("/");
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error signing in with Google",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

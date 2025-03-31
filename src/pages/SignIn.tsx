@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignIn = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login, googleLogin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -37,29 +39,43 @@ const SignIn = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await login(formData.email, formData.password);
       toast({
         title: "Signed in",
         description: "Welcome back!",
       });
-      setIsLoading(false);
       navigate("/");
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error signing in",
+        description: "Please check your credentials and try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     
-    // Simulate Google Auth
-    setTimeout(() => {
+    try {
+      await googleLogin();
       toast({
         title: "Signed in with Google",
         description: "Welcome back!",
       });
-      setIsLoading(false);
       navigate("/");
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error signing in with Google",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
