@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import DashboardHeader from "@/components/DashboardHeader";
@@ -13,14 +12,13 @@ import {
   getSentimentBreakdown,
   getSentimentOverTime,
   getTopKeywords,
-  datasets,
-  DatasetInfo
+  datasets
 } from "@/data/mockData";
 import DatasetSelector from "@/components/DatasetSelector";
 
 const SentimentAnalysis = () => {
-  const [selectedDataset, setSelectedDataset] = useState<DatasetInfo>(datasets[0]);
-  const { reviews } = getDatasetContent(selectedDataset.id);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>(datasets[0].id);
+  const { reviews } = getDatasetContent(selectedDatasetId);
   
   // Get sentiment data
   const sentimentData = getSentimentBreakdown(reviews);
@@ -38,9 +36,8 @@ const SentimentAnalysis = () => {
       
       <div className="mb-6">
         <DatasetSelector 
-          datasets={datasets}
-          selectedDataset={selectedDataset}
-          onSelectDataset={setSelectedDataset}
+          selectedDataset={selectedDatasetId}
+          onSelectDataset={setSelectedDatasetId}
         />
       </div>
 

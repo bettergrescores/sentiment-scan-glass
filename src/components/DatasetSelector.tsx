@@ -1,9 +1,8 @@
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { datasets, DatasetInfo } from "@/data/mockData";
+import { datasets } from "@/data/mockData";
 
 interface DatasetSelectorProps {
   selectedDataset: string;

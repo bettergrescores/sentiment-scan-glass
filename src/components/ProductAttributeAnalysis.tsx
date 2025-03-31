@@ -1,317 +1,217 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useEffect, useState } from "react";
 
-import { useState, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Product, Review } from "@/data/mockData";
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  subCategory: string;
+  price: number;
+  imageUrl: string;
+  releaseDate: string;
+}
+
+interface Review {
+  id: string;
+  productId: string;
+  text: string;
+  rating: number;
+  sentiment: "positive" | "negative" | "neutral";
+  sentimentScore: number;
+  date: string;
+  keywords: string[];
+}
 
 interface ProductAttributeAnalysisProps {
   products: Product[];
   reviews: Review[];
 }
 
-const ProductAttributeAnalysis = ({
-  products,
-  reviews,
-}: ProductAttributeAnalysisProps) => {
-  const [selectedAttribute, setSelectedAttribute] = useState<string>("category");
+const ProductAttributeAnalysis = ({ products, reviews }: ProductAttributeAnalysisProps) => {
+  const [categoryData, setCategoryData] = useState([]);
+  const [subcategoryData, setSubcategoryData] = useState([]);
+  const [priceRangeData, setPriceRangeData] = useState([]);
 
-  // Extract unique attributes
-  const attributes = useMemo(() => {
-    const attributeMap = {
-      category: [...new Set(products.map((p) => p.category))],
-      subCategory: [...new Set(products.map((p) => p.subCategory))],
-      price: ["0-25", "26-50", "51-75", "76-100", "100+"],
-    };
-    return attributeMap;
+  useEffect(() => {
+    // Category Analysis
+    const categoryCounts: { [category: string]: number } = {};
+    products.forEach(product => {
+      categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+    });
+    const categoryAnalysis = Object.entries(categoryCounts).map(([category, count]) => ({
+      category,
+      count,
+    }));
+    setCategoryData(categoryAnalysis);
+
+    // Subcategory Analysis
+    const subcategoryCounts: { [subcategory: string]: number } = {};
+    products.forEach(product => {
+      subcategoryCounts[product.subCategory] = (subcategoryCounts[product.subCategory] || 0) + 1;
+    });
+    const subcategoryAnalysis = Object.entries(subcategoryCounts).map(([subcategory, count]) => ({
+      subcategory,
+      count,
+    }));
+    setSubcategoryData(subcategoryAnalysis);
+
+    // Price Range Analysis
+    const priceRanges = [
+      { range: "Under $50", min: 0, max: 50 },
+      { range: "$50 - $100", min: 50, max: 100 },
+      { range: "$100 - $150", min: 100, max: 150 },
+      { range: "Over $150", min: 150, max: Infinity },
+    ];
+    const priceRangeCounts = priceRanges.map(range => {
+      const count = products.filter(product => product.price >= range.min && product.price < range.max).length;
+      return {
+        range: range.range,
+        count,
+      };
+    });
+    setPriceRangeData(priceRangeCounts);
   }, [products]);
 
-  // Group products by selected attribute
-  const attributeData = useMemo(() => {
-    let groupedData: Record<string, { products: Product[]; reviews: Review[] }> = {};
-    
-    if (selectedAttribute === "price") {
-      // Group by price range
-      groupedData = {
-        "0-25": { products: [], reviews: [] },
-        "26-50": { products: [], reviews: [] },
-        "51-75": { products: [], reviews: [] },
-        "76-100": { products: [], reviews: [] },
-        "100+": { products: [], reviews: [] },
-      };
-      
-      products.forEach(product => {
-        let priceRange = "100+";
-        if (product.price <= 25) priceRange = "0-25";
-        else if (product.price <= 50) priceRange = "26-50";
-        else if (product.price <= 75) priceRange = "51-75";
-        else if (product.price <= 100) priceRange = "76-100";
-        
-        groupedData[priceRange].products.push(product);
-        groupedData[priceRange].reviews.push(
-          ...reviews.filter(r => r.productId === product.id)
-        );
-      });
-    } else {
-      // Group by category or subCategory
-      products.forEach(product => {
-        const attributeValue = product[selectedAttribute as keyof Product] as string;
-        if (!groupedData[attributeValue]) {
-          groupedData[attributeValue] = { products: [], reviews: [] };
+  const renderBarChart = (data: any[], dataKey: string, nameKey: string, title: string) => {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={nameKey} />
+              <YAxis />
+              <Tooltip formatter={(value: number) => [`${value} products`, 'Products']} />
+              <Legend />
+              <Bar dataKey={dataKey} fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderSentimentAnalysis = () => {
+    const categorySentiment: { [category: string]: { positive: number; negative: number; total: number } } = {};
+
+    products.forEach(product => {
+      categorySentiment[product.category] = categorySentiment[product.category] || { positive: 0, negative: 0, total: 0 };
+    });
+
+    reviews.forEach(review => {
+      const product = products.find(p => p.id === review.productId);
+      if (product) {
+        categorySentiment[product.category].total++;
+        if (review.sentiment === "positive") {
+          categorySentiment[product.category].positive++;
+        } else if (review.sentiment === "negative") {
+          categorySentiment[product.category].negative++;
         }
-        
-        groupedData[attributeValue].products.push(product);
-        groupedData[attributeValue].reviews.push(
-          ...reviews.filter(r => r.productId === product.id)
-        );
-      });
-    }
-    
-    // Calculate metrics for each attribute value
-    return Object.entries(groupedData).map(([attribute, data]) => {
-      const { products, reviews } = data;
-      const totalReviews = reviews.length;
-      
-      if (totalReviews === 0) {
-        return {
-          attribute,
-          positivePercent: 0,
-          negativePercent: 0,
-          neutralPercent: 0,
-          avgRating: 0,
-          productCount: products.length,
-          reviewCount: 0
-        };
       }
-      
-      const positiveReviews = reviews.filter(r => r.sentiment === "positive").length;
-      const negativeReviews = reviews.filter(r => r.sentiment === "negative").length;
-      const neutralReviews = reviews.filter(r => r.sentiment === "neutral").length;
-      
+    });
+
+    const sentimentData = Object.entries(categorySentiment).map(([category, sentiment]) => ({
+      category,
+      positive: sentiment.positive,
+      negative: sentiment.negative,
+      total: sentiment.total,
+      positivePercent: sentiment.total > 0 ? sentiment.positive / sentiment.total : 0,
+      negativePercent: sentiment.total > 0 ? sentiment.negative / sentiment.total : 0,
+    }));
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Sentiment Analysis by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={sentimentData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="category" />
+              <YAxis tickFormatter={(value: number) => `${(value * 100).toFixed(0)}%`} />
+              <Tooltip formatter={(value: number) => {
+                if (typeof value === 'number') {
+                  return `${(value * 100).toFixed(1)}%`;
+                }
+                return '0';
+              }} />
+              <Legend />
+              <Bar dataKey="positivePercent" fill="#4ade80" name="Positive Sentiment" />
+              <Bar dataKey="negativePercent" fill="#f87171" name="Negative Sentiment" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderKeywordAnalysis = () => {
+    const categoryKeywords: { [category: string]: { [keyword: string]: number } } = {};
+
+    products.forEach(product => {
+      categoryKeywords[product.category] = {};
+    });
+
+    reviews.forEach(review => {
+      const product = products.find(p => p.id === review.productId);
+      if (product) {
+        review.keywords.forEach(keyword => {
+          categoryKeywords[product.category][keyword] = (categoryKeywords[product.category][keyword] || 0) + 1;
+        });
+      }
+    });
+
+    const keywordData = Object.entries(categoryKeywords).map(([category, keywords]) => {
+      const totalKeywords = Object.values(keywords).reduce((sum, count) => sum + count, 0);
+      const keywordPercentages = Object.entries(keywords).map(([keyword, count]) => ({
+        keyword,
+        value: totalKeywords > 0 ? count / totalKeywords : 0,
+      }));
       return {
-        attribute,
-        positivePercent: (positiveReviews / totalReviews) * 100,
-        negativePercent: (negativeReviews / totalReviews) * 100,
-        neutralPercent: (neutralReviews / totalReviews) * 100,
-        avgRating: reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews,
-        productCount: products.length,
-        reviewCount: totalReviews
+        category,
+        keywords: keywordPercentages.sort((a, b) => b.value - a.value).slice(0, 5),
       };
-    }).filter(item => item.reviewCount > 0);
-    
-  }, [products, reviews, selectedAttribute]);
+    });
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Keywords by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {keywordData.map(item => (
+              <div key={item.category}>
+                <h3 className="text-lg font-medium mb-2">{item.category}</h3>
+                <ul>
+                  {item.keywords.map(keyword => (
+                    <li key={keyword.keyword} className="flex justify-between">
+                      <span>{keyword.keyword}</span>
+                      <span>{typeof keyword.value === 'number' ? (keyword.value * 100).toFixed(1) : '0'}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Product Attribute Analysis</CardTitle>
-        <Select
-          value={selectedAttribute}
-          onValueChange={(value) => setSelectedAttribute(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select attribute" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="category">Category</SelectItem>
-            <SelectItem value="subCategory">Subcategory</SelectItem>
-            <SelectItem value="price">Price Range</SelectItem>
-          </SelectContent>
-        </Select>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-          {/* Sentiment Distribution by Attribute */}
-          <div className="h-96">
-            <h3 className="text-sm font-medium mb-2">Sentiment Distribution</h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={attributeData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 60,
-                }}
-                barGap={0}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis
-                  dataKey="attribute"
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  tickFormatter={(value) => `${value}%`}
-                  domain={[0, 100]}
-                />
-                <Tooltip formatter={(value) => [`${value.toFixed(1)}%`]} />
-                <Legend />
-                <Bar
-                  dataKey="positivePercent"
-                  name="Positive"
-                  stackId="stack"
-                  fill="#4ade80"
-                />
-                <Bar
-                  dataKey="neutralPercent"
-                  name="Neutral"
-                  stackId="stack"
-                  fill="#94a3b8"
-                />
-                <Bar
-                  dataKey="negativePercent"
-                  name="Negative"
-                  stackId="stack"
-                  fill="#f87171"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Average Rating by Attribute */}
-          <div className="h-96">
-            <h3 className="text-sm font-medium mb-2">Average Rating</h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={attributeData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 60,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis
-                  dataKey="attribute"
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis domain={[0, 5]} />
-                <Tooltip
-                  formatter={(value, name) => [
-                    name === "avgRating"
-                      ? `${value.toFixed(1)} stars`
-                      : value,
-                    name === "avgRating" ? "Average Rating" : name,
-                  ]}
-                />
-                <Legend />
-                <Bar
-                  dataKey="avgRating"
-                  name="Average Rating"
-                  fill="#f59e0b"
-                  barSize={30}
-                >
-                  {attributeData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        entry.avgRating >= 4
-                          ? "#4ade80"
-                          : entry.avgRating >= 3
-                          ? "#fbbf24"
-                          : "#f87171"
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Attribute Statistics Table */}
-        <div className="mt-8">
-          <h3 className="text-sm font-medium mb-3">
-            {selectedAttribute === "category"
-              ? "Category Statistics"
-              : selectedAttribute === "subCategory"
-              ? "Subcategory Statistics"
-              : "Price Range Statistics"}
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="text-left p-2 border-b">
-                    {selectedAttribute === "price"
-                      ? "Price Range"
-                      : selectedAttribute === "category"
-                      ? "Category"
-                      : "Subcategory"}
-                  </th>
-                  <th className="text-center p-2 border-b">Products</th>
-                  <th className="text-center p-2 border-b">Reviews</th>
-                  <th className="text-center p-2 border-b">Avg. Rating</th>
-                  <th className="text-center p-2 border-b">Positive</th>
-                  <th className="text-center p-2 border-b">Neutral</th>
-                  <th className="text-center p-2 border-b">Negative</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attributeData.map((item) => (
-                  <tr key={item.attribute} className="hover:bg-muted/50">
-                    <td className="p-2 border-b font-medium">
-                      {item.attribute}
-                    </td>
-                    <td className="text-center p-2 border-b">
-                      {item.productCount}
-                    </td>
-                    <td className="text-center p-2 border-b">
-                      {item.reviewCount}
-                    </td>
-                    <td className="text-center p-2 border-b">
-                      <span
-                        className={
-                          item.avgRating >= 4
-                            ? "text-green-600"
-                            : item.avgRating >= 3
-                            ? "text-amber-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {item.avgRating.toFixed(1)}
-                      </span>
-                    </td>
-                    <td className="text-center p-2 border-b text-green-600">
-                      {item.positivePercent.toFixed(1)}%
-                    </td>
-                    <td className="text-center p-2 border-b text-slate-600">
-                      {item.neutralPercent.toFixed(1)}%
-                    </td>
-                    <td className="text-center p-2 border-b text-red-600">
-                      {item.negativePercent.toFixed(1)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {renderBarChart(categoryData, "count", "category", "Products by Category")}
+      {renderBarChart(subcategoryData, "count", "subcategory", "Products by Subcategory")}
+      {renderBarChart(priceRangeData, "count", "range", "Products by Price Range")}
+      {renderSentimentAnalysis()}
+      {renderKeywordAnalysis()}
+    </div>
   );
 };
 

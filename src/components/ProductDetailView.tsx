@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -211,11 +210,7 @@ const ProductDetailView = ({ product, reviews }: ProductDetailViewProps) => {
                           {stats.positiveReviews} ({stats.positivePercentage.toFixed(1)}%)
                         </span>
                       </div>
-                      <Progress
-                        value={stats.positivePercentage}
-                        className="bg-green-100"
-                        indicatorClassName="bg-green-500"
-                      />
+                      <Progress value={stats.positivePercentage} className="h-2 bg-muted [&>div]:bg-green-500" />
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-1">
@@ -224,11 +219,7 @@ const ProductDetailView = ({ product, reviews }: ProductDetailViewProps) => {
                           {stats.neutralReviews} ({stats.neutralPercentage.toFixed(1)}%)
                         </span>
                       </div>
-                      <Progress
-                        value={stats.neutralPercentage}
-                        className="bg-slate-100"
-                        indicatorClassName="bg-slate-500"
-                      />
+                      <Progress value={stats.neutralPercentage} className="h-2 bg-muted [&>div]:bg-slate-500" />
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-1">
@@ -237,11 +228,7 @@ const ProductDetailView = ({ product, reviews }: ProductDetailViewProps) => {
                           {stats.negativeReviews} ({stats.negativePercentage.toFixed(1)}%)
                         </span>
                       </div>
-                      <Progress
-                        value={stats.negativePercentage}
-                        className="bg-red-100"
-                        indicatorClassName="bg-red-500"
-                      />
+                      <Progress value={stats.negativePercentage} className="h-2 bg-muted [&>div]:bg-red-500" />
                     </div>
                   </div>
                 </div>

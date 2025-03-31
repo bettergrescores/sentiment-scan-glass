@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import DashboardHeader from "@/components/DashboardHeader";
@@ -11,15 +10,14 @@ import {
   getDatasetContent,
   getTopProducts,
   datasets,
-  DatasetInfo,
   Product
 } from "@/data/mockData";
 import DatasetSelector from "@/components/DatasetSelector";
 
 const ProductInsights = () => {
-  const [selectedDataset, setSelectedDataset] = useState<DatasetInfo>(datasets[0]);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>(datasets[0].id);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { products, reviews } = getDatasetContent(selectedDataset.id);
+  const { products, reviews } = getDatasetContent(selectedDatasetId);
   
   const topPositiveProducts = getTopProducts(products, reviews, "positive", 5);
   const topNegativeProducts = getTopProducts(products, reviews, "negative", 5);
@@ -38,12 +36,8 @@ const ProductInsights = () => {
       
       <div className="mb-6">
         <DatasetSelector 
-          datasets={datasets}
-          selectedDataset={selectedDataset}
-          onSelectDataset={(dataset) => {
-            setSelectedDataset(dataset);
-            setSelectedProduct(null);
-          }}
+          selectedDataset={selectedDatasetId}
+          onSelectDataset={setSelectedDatasetId}
         />
       </div>
 
@@ -96,7 +90,6 @@ const ProductInsights = () => {
   );
 };
 
-// Inline component for product overview
 const ProductOverview = ({ products, reviews }: { products: Product[], reviews: any[] }) => {
   const categories = [...new Set(products.map(p => p.category))];
   const reviewsPerCategory = categories.map(category => {
