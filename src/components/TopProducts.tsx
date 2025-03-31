@@ -1,18 +1,21 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Product } from "@/data/mockData";
-
 interface TopProductProps {
-  products: Array<Product & { score: number; reviewCount: number }>;
+  products: Array<Product & {
+    score: number;
+    reviewCount: number;
+  }>;
   type: "positive" | "negative";
   onProductSelect?: (product: Product) => void;
 }
-
-const TopProducts = ({ products, type, onProductSelect }: TopProductProps) => {
-  return (
-    <Card className="h-full">
+const TopProducts = ({
+  products,
+  type,
+  onProductSelect
+}: TopProductProps) => {
+  return <Card className="h-half">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">
           {type === "positive" ? "Top Rated Products" : "Products Needing Improvement"}
@@ -28,39 +31,28 @@ const TopProducts = ({ products, type, onProductSelect }: TopProductProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow 
-                key={product.id} 
-                className={onProductSelect ? "cursor-pointer hover:bg-muted" : ""}
-                onClick={() => onProductSelect && onProductSelect(product)}
-              >
+            {products.map(product => <TableRow key={product.id} className={onProductSelect ? "cursor-pointer hover:bg-muted" : ""} onClick={() => onProductSelect && onProductSelect(product)}>
                 <TableCell className="font-medium">
                   <div>{product.name}</div>
                   <div className="text-xs text-gray-500">{product.category} • ${product.price}</div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                    <Progress 
-                      value={product.score * 100} 
-                      className={type === "positive" ? "bg-green-100" : "bg-red-100"}
-                      // Replace indicatorClassName with custom styles
-                      style={{
-                        "--progress-background": type === "positive" ? "rgb(34, 197, 94)" : "rgb(239, 68, 68)"
-                      } as React.CSSProperties}
-                    />
+                    <Progress value={product.score * 100} className={type === "positive" ? "bg-green-100" : "bg-red-100"}
+                // Replace indicatorClassName with custom styles
+                style={{
+                  "--progress-background": type === "positive" ? "rgb(34, 197, 94)" : "rgb(239, 68, 68)"
+                } as React.CSSProperties} />
                     <span className="text-xs font-medium">
                       {(product.score * 100).toFixed(0)}%
                     </span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">{product.reviewCount}</TableCell>
-              </TableRow>
-            ))}
+              </TableRow>)}
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default TopProducts;
