@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Adding BlueKaktus brand color
+				bluekaktus: {
+					DEFAULT: '#0060a9',
+					light: '#007bd9',
+					dark: '#004c8c'
 				}
 			},
 			borderRadius: {

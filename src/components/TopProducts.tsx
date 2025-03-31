@@ -42,8 +42,11 @@ const TopProducts = ({ products, type, onProductSelect }: TopProductProps) => {
                   <div className="flex items-center space-x-2">
                     <Progress 
                       value={product.score * 100} 
-                      className={`${type === "positive" ? "bg-green-100" : "bg-red-100"}`}
-                      indicatorClassName={`${type === "positive" ? "bg-green-500" : "bg-red-500"}`}
+                      className={type === "positive" ? "bg-green-100" : "bg-red-100"}
+                      // Replace indicatorClassName with custom styles
+                      style={{
+                        "--progress-background": type === "positive" ? "rgb(34, 197, 94)" : "rgb(239, 68, 68)"
+                      } as React.CSSProperties}
                     />
                     <span className="text-xs font-medium">
                       {(product.score * 100).toFixed(0)}%

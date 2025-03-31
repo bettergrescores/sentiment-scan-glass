@@ -1,14 +1,25 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BarChart3, Search, Home, FileText, Package2 } from "lucide-react";
+import { BarChart3, Search, Home, FileText, Package2, Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import AuthHeader from "@/components/AuthHeader";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
-const Sidebar = () => {
+const AppSidebar = () => {
   const location = useLocation();
-  const isMobileView = window.innerWidth < 768;
   
   const menuItems = [
     { 
@@ -40,58 +51,55 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="min-w-56 bg-white border-r h-screen sticky top-0">
-      <div className="flex flex-col h-full">
-        {/* Logo and product name */}
-        <div className="p-4 border-b flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center text-white font-bold">
-              FF
-            </div>
-            <span className="font-bold text-lg hidden md:inline">Fashion Feedback</span>
-          </Link>
-          <div className="md:hidden">
-            <AuthHeader />
+    <Sidebar>
+      <SidebarHeader className="border-b px-3 py-4">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center text-white font-bold">
+            BK
           </div>
+          <span className="font-bold text-lg">BlueKaktus</span>
         </div>
-        
-        {/* Navigation */}
-        <div className="flex-1 p-3 space-y-1 overflow-auto">
-          {menuItems.map((item) => (
-            <Button
-              key={item.name}
-              variant={location.pathname === item.path ? "secondary" : "ghost"}
-              className={cn(
-                "w-full justify-start text-left relative",
-                location.pathname === item.path ? "font-medium" : "font-normal"
-              )}
-              asChild
-            >
-              <Link to={item.path}>
-                <span className="mr-2">{item.icon}</span>
-                <span className={cn(isMobileView ? "sr-only" : "")}>
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <Badge 
-                    className="absolute right-2 top-2"
-                    variant="tag"
+        <SidebarTrigger className="absolute right-2 top-4 md:hidden" />
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton
+                    tooltip={item.name}
+                    isActive={location.pathname === item.path}
+                    asChild
                   >
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
-          ))}
-        </div>
-        
-        {/* User profile section (desktop only) */}
-        <div className="border-t p-3 hidden md:block">
-          <AuthHeader />
-        </div>
-      </div>
-    </div>
+                    <Link to={item.path}>
+                      {item.icon}
+                      <span>{item.name}</span>
+                      {item.badge && (
+                        <Badge 
+                          className="ml-auto"
+                          variant="tag"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      
+      <SidebarFooter className="border-t p-3">
+        <AuthHeader />
+      </SidebarFooter>
+      
+      <SidebarRail />
+    </Sidebar>
   );
 };
 
-export default Sidebar;
+export default AppSidebar;

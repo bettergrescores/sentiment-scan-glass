@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 207 100% 33%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -35,20 +36,13 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 207 100% 50%;
   }
 
   .dark {
@@ -61,7 +55,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 207 100% 50%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -97,5 +91,38 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom styles for Progress component */
+.Progress[data-state="indeterminate"] .progressbar {
+  @apply animate-pulse;
+}
+
+/* Add custom styles for responsive charts */
+.recharts-responsive-container {
+  @apply w-full h-full;
+}
+
+/* Card styles for consistent card appearance */
+.card-grid {
+  @apply grid gap-4 md:gap-6;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+}
+
+/* Animation for sidebar elements */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.sidebar-item-animate {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Fix for the responsive issues */
+@media (max-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
   }
 }

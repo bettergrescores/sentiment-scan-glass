@@ -1,8 +1,8 @@
 
-# Fashion Feedback Dashboard Documentation
+# BlueKaktus Dashboard Documentation
 
 ## Overview
-The Fashion Feedback Dashboard is a web application designed to analyze customer reviews and feedback for fashion products. It provides various visualization tools and insights to help fashion businesses understand customer sentiment, identify trends, and make data-driven decisions.
+The BlueKaktus Dashboard is a web application designed to analyze customer reviews and feedback for fashion products. It provides various visualization tools and insights to help fashion businesses understand customer sentiment, identify trends, and make data-driven decisions.
 
 ## Design Choices
 
@@ -15,6 +15,7 @@ The Fashion Feedback Dashboard is a web application designed to analyze customer
 ### UI/UX
 - **Shadcn UI**: Selected for its modern, consistent, and accessible UI components.
 - **Tailwind CSS**: Used for rapid styling with utility classes and responsive design.
+- **Collapsible Sidebar**: Implemented for better mobile experience and screen real estate management.
 - **Dashboard Layout**: Side navigation for easy access to different features with a main content area for visualizations.
 - **Data Visualization**: Combination of charts, tables, and cards to present data in an easily digestible format.
 
@@ -37,11 +38,13 @@ The Fashion Feedback Dashboard is a web application designed to analyze customer
 2. **Responsive Design**: Ensuring that data visualizations work well across different screen sizes.
 3. **Type Safety**: Maintaining proper TypeScript types across component boundaries and with external libraries.
 4. **Mock Data**: Creating realistic mock data that demonstrates the capabilities of the application without a backend.
+5. **Sidebar Implementation**: Balancing a good desktop experience with mobile usability for the navigation.
 
 ### UX Challenges
 1. **Information Density**: Balancing the need to display comprehensive data while avoiding information overload.
 2. **Data Context**: Providing sufficient context around visualizations for users to draw meaningful conclusions.
 3. **Loading States**: Managing loading states and transitions for a smooth user experience.
+4. **Mobile Optimization**: Ensuring that the application is usable on smaller screens without compromising on functionality.
 
 ## Future Improvements
 
@@ -58,4 +61,4 @@ The Fashion Feedback Dashboard is a web application designed to analyze customer
 4. **Accessibility**: Enhancing keyboard navigation and screen reader support.
 
 ## Conclusion
-The Fashion Feedback Dashboard aims to provide fashion businesses with a powerful tool to understand customer sentiment and feedback. The current implementation provides a solid foundation that can be extended with more advanced features as needed.
+The BlueKaktus Dashboard aims to provide fashion businesses with a powerful tool to understand customer sentiment and feedback. The current implementation provides a solid foundation that can be extended with more advanced features as needed.
