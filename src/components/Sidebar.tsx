@@ -1,75 +1,96 @@
 
-import { useState } from "react";
-import { Home, BarChart2, Tag, FileText, Database, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BarChart3, Search, Home, FileText, Package2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import AuthHeader from "@/components/AuthHeader";
 
 const Sidebar = () => {
   const location = useLocation();
-  const [expanded, setExpanded] = useState(false);
-
-  const toggleSidebar = () => {
-    setExpanded(!expanded);
-  };
-
-  const navItems = [
-    { title: "Dashboard", icon: Home, path: "/" },
-    { title: "Sentiment Analysis", icon: BarChart2, path: "/sentiment" },
-    { title: "Product Insights", icon: Tag, path: "/insights" },
-    { title: "Reports", icon: FileText, path: "/reports" },
-    { title: "Sample Data", icon: Database, path: "/samples" },
+  const isMobileView = window.innerWidth < 768;
+  
+  const menuItems = [
+    { 
+      name: "Dashboard", 
+      icon: <Home className="h-5 w-5" />, 
+      path: "/" 
+    },
+    { 
+      name: "Sentiment Analysis", 
+      icon: <BarChart3 className="h-5 w-5" />,
+      path: "/sentiment",
+      badge: "New"
+    },
+    { 
+      name: "Product Insights", 
+      icon: <Search className="h-5 w-5" />,
+      path: "/insights" 
+    },
+    { 
+      name: "Reports", 
+      icon: <FileText className="h-5 w-5" />,
+      path: "/reports" 
+    },
+    { 
+      name: "Samples", 
+      icon: <Package2 className="h-5 w-5" />,
+      path: "/samples" 
+    }
   ];
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 md:hidden"
-      >
-        {expanded ? <X size={20} /> : <Menu size={20} />}
-      </Button>
-      <div
-        className={cn(
-          "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full",
-          expanded ? "w-64 fixed inset-0 z-40" : "w-0 md:w-64",
-          "md:relative"
-        )}
-      >
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-primary truncate">
-            Fashion Feedback Analyzer
-          </h1>
+    <div className="min-w-56 bg-white border-r h-screen sticky top-0">
+      <div className="flex flex-col h-full">
+        {/* Logo and product name */}
+        <div className="p-4 border-b flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center text-white font-bold">
+              FF
+            </div>
+            <span className="font-bold text-lg hidden md:inline">Fashion Feedback</span>
+          </Link>
+          <div className="md:hidden">
+            <AuthHeader />
+          </div>
         </div>
-        <nav className="flex-1 overflow-auto p-2">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
-                    location.pathname === item.path
-                      ? "bg-gray-100 text-primary font-medium"
-                      : "text-gray-700"
-                  )}
-                >
-                  <item.icon size={18} />
-                  <span>{item.title}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="p-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
-            Fashion Feedback Analyzer v1.0
-          </p>
+        
+        {/* Navigation */}
+        <div className="flex-1 p-3 space-y-1 overflow-auto">
+          {menuItems.map((item) => (
+            <Button
+              key={item.name}
+              variant={location.pathname === item.path ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start text-left relative",
+                location.pathname === item.path ? "font-medium" : "font-normal"
+              )}
+              asChild
+            >
+              <Link to={item.path}>
+                <span className="mr-2">{item.icon}</span>
+                <span className={cn(isMobileView ? "sr-only" : "")}>
+                  {item.name}
+                </span>
+                {item.badge && (
+                  <Badge 
+                    className="absolute right-2 top-2"
+                    variant="tag"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
+          ))}
+        </div>
+        
+        {/* User profile section (desktop only) */}
+        <div className="border-t p-3 hidden md:block">
+          <AuthHeader />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
